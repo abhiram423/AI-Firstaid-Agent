@@ -30,8 +30,6 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -54,17 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if os.environ.get('RENDER'):
-    DATABASE_DIR = Path('/data')
-else:
-    DATABASE_DIR = BASE_DIR
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': DATABASE_DIR / 'db.sqlite3',  # Uses /data/db.sqlite3 on Render
-    }
-}
 
 ROOT_URLCONF = 'firstaid_agent.urls'
 
@@ -88,6 +76,11 @@ WSGI_APPLICATION = 'firstaid_agent.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+if os.environ.get('RENDER'):
+    DATABASE_DIR = Path('/data')
+else:
+    DATABASE_DIR = BASE_DIR
 
 DATABASES = {
     'default': {
@@ -134,8 +127,18 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS=[os.path.join(BASE_DIR, 'assets/static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' 
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend' 
 EMAIL_HOST = 'smtp.gmail.com' 
