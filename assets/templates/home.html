@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MedAssist AI — Your Personal Healthcare Guidance Platform{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+
+  <div class="container position-relative">
+    <div class="row align-items-center g-5">
+
+      <!-- Left: Copy -->
+      <div class="col-lg-6">
+        <div class="hero-badge animate-fade-up">
+          <span class="hero-badge-dot"></span>
+          Trusted Healthcare Guidance Platform
+        </div>
+
+        <h1 class="hero-headline animate-fade-up animate-delay-1">
+          Expert First Aid<br>
+          Guidance When<br>
+          <span class="hl-accent">You Need It.</span>
+        </h1>
+
+        <p class="hero-sub animate-fade-up animate-delay-2">
+          Receive step-by-step first aid guidance, injury care recommendations, and
+          emergency support through a simple guided healthcare workflow. Clear, safe,
+          and professional — for individuals, families, and first responders.
+        </p>
+
+        <div class="hero-actions animate-fade-up animate-delay-3">
+          <a href="{% url 'guide' %}" class="btn-hero-primary">
+            <i class="bi bi-heart-pulse-fill"></i>
+            Get Guidance Now
+          </a>
+          <a href="#how" class="btn-hero-secondary">
+            <i class="bi bi-info-circle"></i>
+            How It Works
+          </a>
+        </div>
+
+        <!-- Trust Strip -->
+        <div class="d-flex flex-wrap gap-4 animate-fade-up animate-delay-4" style="margin-top:36px;">
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;">
+            <div style="width:32px;height:32px;background:rgba(6,214,160,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--accent);">
+              <i class="bi bi-shield-check-fill"></i>
+            </div>
+            Medically Reviewed
+          </div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;">
+            <div style="width:32px;height:32px;background:rgba(59,130,246,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#93c5fd;">
+              <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            Instant Results
+          </div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;">
+            <div style="width:32px;height:32px;background:rgba(239,68,68,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fca5a5;">
+              <i class="bi bi-telephone-fill"></i>
+            </div>
+            Emergency-Ready
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Professional Medical Orbit Animation -->
+      <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center">
+        <div class="med-orbit-wrap">
+
+          <!-- Orbit ring decorators -->
+          <div class="med-orbit-ring-dec med-oring-outer"></div>
+          <div class="med-orbit-ring-dec med-oring-mid"></div>
+          <div class="med-orbit-ring-dec med-oring-inner"></div>
+
+          <!-- Outer orbit — 4 icons, clockwise -->
+          <div class="med-orb med-orb-o1"><i class="bi bi-clipboard2-pulse-fill" style="color:#93c5fd;font-size:18px;"></i></div>
+          <div class="med-orb med-orb-o2"><i class="bi bi-hospital-fill" style="color:#fca5a5;font-size:18px;"></i></div>
+          <div class="med-orb med-orb-o3"><i class="bi bi-thermometer-half" style="color:#fcd34d;font-size:18px;"></i></div>
+          <div class="med-orb med-orb-o4"><i class="bi bi-person-badge-fill" style="color:#6ee7b7;font-size:18px;"></i></div>
+
+          <!-- Middle orbit — 3 icons, counter-clockwise -->
+          <div class="med-orb med-orb-i1"><i class="bi bi-capsule-pill" style="color:#c4b5fd;font-size:16px;"></i></div>
+          <div class="med-orb med-orb-i2"><i class="bi bi-bandaid-fill" style="color:#6ee7b7;font-size:16px;"></i></div>
+          <div class="med-orb med-orb-i3"><i class="bi bi-shield-plus-fill" style="color:#93c5fd;font-size:16px;"></i></div>
+
+          <!-- Center icon — pulsing -->
+          <div class="med-orbit-center">
+            <div class="med-orbit-center-glow"></div>
+            <i class="bi bi-heart-pulse-fill"></i>
+          </div>
+
+          <!-- Floating status cards -->
+          <div class="med-fc med-fc-1">
+            <div class="med-fc-dot"></div>
+            <div>
+              <div class="med-fc-title">AI Agent Active</div>
+              <div class="med-fc-sub">Multi-system analysis</div>
+            </div>
+          </div>
+
+          <div class="med-fc med-fc-2">
+            <i class="bi bi-capsule-pill" style="color:#c4b5fd;font-size:16px;flex-shrink:0;"></i>
+            <div>
+              <div class="med-fc-title">Medications</div>
+              <div class="med-fc-sub">Auto-recommended</div>
+            </div>
+          </div>
+
+          <div class="med-fc med-fc-3">
+            <i class="bi bi-file-earmark-medical-fill" style="color:#6ee7b7;font-size:16px;flex-shrink:0;"></i>
+            <div>
+              <div class="med-fc-title">Report Ready</div>
+              <div class="med-fc-sub">In under 3 seconds</div>
+            </div>
+          </div>
+
+          <div class="med-fc med-fc-4">
+            <i class="bi bi-shield-check-fill" style="color:#fcd34d;font-size:16px;flex-shrink:0;"></i>
+            <div>
+              <div class="med-fc-title">Risk Assessed</div>
+              <div class="med-fc-sub">Low → Critical scale</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Trust chips strip -->
+<section style="background:#fff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:16px 0;">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap"
+         style="font-size:0.78rem;color:var(--muted);font-weight:600;letter-spacing:0.3px;">
+      <span><i class="bi bi-shield-lock-fill text-success me-1"></i>Medically Reviewed Content</span>
+      <span style="color:var(--border);">|</span>
+      <span><i class="bi bi-diagram-3 text-primary me-1"></i>Guided 4-Step Workflow</span>
+      <span style="color:var(--border);">|</span>
+      <span><i class="bi bi-file-earmark-medical text-danger me-1"></i>Comprehensive Reports</span>
+      <span style="color:var(--border);">|</span>
+      <span><i class="bi bi-hospital text-info me-1"></i>Hospital Finder Included</span>
+      <span style="color:var(--border);">|</span>
+      <span><i class="bi bi-telephone text-warning me-1"></i>Emergency Support</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TRUST & SAFETY SECTION
+════════════════════════════════════════════ -->
+<section style="background:var(--white);padding:80px 0;" id="trust">
+  <div class="container">
+
+    <div class="text-center mb-5 reveal">
+      <div class="section-label justify-content-center">
+        <span class="section-label-line"></span>
+        Why Choose MedAssist
+        <span class="section-label-line"></span>
+      </div>
+      <h2 class="section-title">Healthcare Guidance You Can Trust</h2>
+      <p class="section-sub mx-auto">
+        Designed for real emergencies and everyday injuries — our guided workflow
+        ensures you always have the right information at the right time.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4 reveal animate-delay-1">
+        <div class="trust-card">
+          <div class="trust-card-icon" style="background:rgba(239,68,68,0.08);color:var(--danger);">
+            <i class="bi bi-alarm-fill"></i>
+          </div>
+          <h3 class="trust-card-title">Emergency Guidance</h3>
+          <p class="trust-card-desc">
+            Immediate, step-by-step first aid instructions for critical injuries including
+            head trauma, chest pain, severe bleeding, and burns. Know what to do before
+            the ambulance arrives.
+          </p>
+          <div class="trust-card-tag">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> Life-Saving Information
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 reveal animate-delay-2">
+        <div class="trust-card">
+          <div class="trust-card-icon" style="background:rgba(26,86,219,0.08);color:var(--primary);">
+            <i class="bi bi-clipboard2-heart-fill"></i>
+          </div>
+          <h3 class="trust-card-title">Comprehensive Care Plans</h3>
+          <p class="trust-card-desc">
+            Each report includes detailed first aid steps, what to avoid, warning signs,
+            recovery recommendations, and preventive guidance — not just a brief list
+            but a complete care protocol.
+          </p>
+          <div class="trust-card-tag">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> 10–12 Guidance Points
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 reveal animate-delay-3">
+        <div class="trust-card">
+          <div class="trust-card-icon" style="background:rgba(6,214,160,0.08);color:var(--accent-dark);">
+            <i class="bi bi-hospital-fill"></i>
+          </div>
+          <h3 class="trust-card-title">Connect to Professional Care</h3>
+          <p class="trust-card-desc">
+            After reviewing your report, connect with a qualified doctor through Practo
+            or locate the nearest accredited hospital in your area — seamlessly integrated
+            into your care journey.
+          </p>
+          <div class="trust-card-tag">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> Practo Integration
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════ -->
+<section style="background:var(--bg);padding:80px 0;" id="how">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+
+      <div class="col-lg-5 reveal">
+        <div class="section-label">
+          <span class="section-label-line"></span>The Guided Workflow
+        </div>
+        <h2 class="section-title">Four Simple Steps to Expert Care</h2>
+        <p class="section-sub mb-4">
+          No complicated forms or medical jargon. Follow four guided steps
+          and receive a comprehensive healthcare report in seconds.
+        </p>
+        <a href="{% url 'guide' %}" class="btn-hero-primary" style="display:inline-flex;">
+          <i class="bi bi-heart-pulse-fill"></i> Start Now — It's Free
+        </a>
+      </div>
+
+      <div class="col-lg-6 offset-lg-1 reveal">
+        <div class="d-flex flex-column gap-3">
+
+          <div class="hiw-step">
+            <div class="hiw-step-num">1</div>
+            <div class="hiw-step-icon"><i class="bi bi-person-bounding-box"></i></div>
+            <div>
+              <div class="hiw-step-title">Select Injury Location</div>
+              <div class="hiw-step-desc">Choose from 8 body regions: Head, Eye, Hand, Arm, Leg, Foot, Chest, or Back.</div>
+            </div>
+          </div>
+
+          <div class="hiw-step">
+            <div class="hiw-step-num">2</div>
+            <div class="hiw-step-icon"><i class="bi bi-clipboard2-pulse"></i></div>
+            <div>
+              <div class="hiw-step-title">Describe What Happened</div>
+              <div class="hiw-step-desc">Select the type of injury: Bleeding, Burn, Pain, Cut, Swelling, or Bruise.</div>
+            </div>
+          </div>
+
+          <div class="hiw-step">
+            <div class="hiw-step-num">3</div>
+            <div class="hiw-step-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+              <div class="hiw-step-title">Rate the Severity</div>
+              <div class="hiw-step-desc">Indicate severity as Mild, Moderate, or Severe to calibrate the guidance.</div>
+            </div>
+          </div>
+
+          <div class="hiw-step">
+            <div class="hiw-step-num">4</div>
+            <div class="hiw-step-icon"><i class="bi bi-file-earmark-medical-fill"></i></div>
+            <div>
+              <div class="hiw-step-title">Receive Your Report</div>
+              <div class="hiw-step-desc">Get a full first aid plan, risk assessment, hospital finder, and doctor consultation option.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     EMERGENCY CALLOUT
+════════════════════════════════════════════ -->
+<section style="background:#fff;padding:40px 0;border-top:1px solid #e2e8f0;">
+  <div class="container">
+    <div class="d-flex align-items-center gap-4 p-4 rounded-3 flex-wrap"
+         style="background:linear-gradient(135deg,rgba(239,68,68,0.05),rgba(185,28,28,0.03));border:1.5px solid rgba(239,68,68,0.2);">
+      <div style="width:52px;height:52px;background:rgba(239,68,68,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--danger);flex-shrink:0;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div>
+        <div style="font-size:1rem;font-weight:700;color:#b91c1c;margin-bottom:4px;">Medical Emergency? Call 911 Immediately</div>
+        <div style="font-size:0.85rem;color:var(--muted);">MedAssist AI provides first aid guidance only. For life-threatening emergencies, always contact emergency services first. Do not delay emergency care to use this platform.</div>
+      </div>
+      <a href="tel:911" class="btn-action btn-action-danger ms-auto" style="white-space:nowrap;">
+        <i class="bi bi-telephone-fill"></i> Call 911
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

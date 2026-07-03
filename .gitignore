@@ -1,0 +1,12 @@
+# Ignore local virtual environments folder settings configurations
+medenv/
+.venv/
+env/
+venv/
+
+# Ignore python caches objects
+__pycache__/
+*.pyc
+
+# Ignore local system assets parameters logs files
+.DS_Store

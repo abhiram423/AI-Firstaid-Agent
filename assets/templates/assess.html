@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Medical Assessment — MedAssist AI{% endblock %}
+{% block nav_assess %}active{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════
+     ASSESS HERO
+════════════════════════════════════════════ -->
+<section class="assess-hero">
+  <div class="container position-relative">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <a href="{% url 'home' %}"
+         style="color:rgba(255,255,255,0.5);font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:var(--transition);"
+         onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+        <i class="bi bi-arrow-left"></i> Home
+      </a>
+      <span style="color:rgba(255,255,255,0.2);">/</span>
+      <span style="color:rgba(255,255,255,0.6);font-size:0.82rem;font-weight:600;">Assessment</span>
+    </div>
+
+    <div class="hero-badge" style="margin-bottom:16px;">
+      <span class="hero-badge-dot"></span>
+      AI-Powered Medical Assessment
+    </div>
+    <h1 class="assess-page-title">Describe Your Symptoms</h1>
+    <p class="assess-page-sub">
+      Our multi-agent AI system will analyze your condition and generate a personalized first aid report.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     ASSESSMENT MAIN
+════════════════════════════════════════════ -->
+<section class="assess-main">
+  <div class="container">
+    <div class="row g-4 align-items-start">
+
+      <!-- ── FORM CARD ── -->
+      <div class="col-lg-7">
+        <div class="assess-form-card">
+
+          <div class="form-step-label">
+            <span class="form-step-dot"></span>
+            Patient Information
+          </div>
+          <h2 class="assess-form-title">Medical Assessment Form</h2>
+          <p class="assess-form-sub">All fields are optional except symptoms. Your data is not stored.</p>
+
+          <form id="assess-form" method="POST" action="{% url 'assess' %}" novalidate>
+            {% csrf_token %}
+
+            <!-- Name + Age Row -->
+            <div class="row g-3 mb-4">
+              <div class="col-sm-7">
+                <div class="form-group-med">
+                  <label class="form-label-med">
+                    <i class="bi bi-person me-1"></i>Patient Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    class="form-control-med"
+                    placeholder="Enter patient name (optional)"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+              <div class="col-sm-5">
+                <div class="form-group-med">
+                  <label class="form-label-med">
+                    <i class="bi bi-calendar3 me-1"></i>Age
+                  </label>
+                  <input
+                    type="number"
+                    name="age"
+                    class="form-control-med"
+                    placeholder="Age (optional)"
+                    min="0" max="120"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Symptoms Textarea -->
+            <div class="form-group-med mb-2">
+              <label class="form-label-med">
+                <i class="bi bi-clipboard2-pulse me-1"></i>
+                Symptom Description <span style="color:var(--danger);">*</span>
+              </label>
+              <textarea
+                name="symptoms"
+                id="symptoms-input"
+                class="form-control-med"
+                rows="7"
+                placeholder="Describe your symptoms in detail. For example: 'I have a deep cut on my left hand, it's bleeding and the wound is about 2cm long. The skin around it looks red and there is some swelling...'"
+                required
+              ></textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <span style="font-size:0.75rem;color:var(--muted);">Be as specific as possible for better results</span>
+                <span id="char-count" style="font-size:0.75rem;color:var(--muted);">0 / 500</span>
+              </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer-box">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <div>
+                <strong>Important:</strong> This tool provides first aid guidance only. It is not a substitute
+                for professional medical advice. For emergencies, call&nbsp;
+                <a href="tel:911" style="color:var(--warning-dark);font-weight:700;">911</a> immediately.
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-analyze" id="analyze-btn">
+              <span class="btn-text d-flex align-items-center gap-2">
+                <i class="bi bi-cpu-fill"></i>
+                Analyze with AI
+              </span>
+              <span class="btn-loading">
+                <span class="spinner-border spinner-border-sm text-white" role="status"></span>
+                Processing through AI pipeline...
+              </span>
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- ── PIPELINE SIDEBAR ── -->
+      <div class="col-lg-5">
+
+        <!-- AI Pipeline Card -->
+        <div class="pipeline-card mb-4">
+          <div class="pipeline-title-text">
+            <i class="bi bi-diagram-3 me-2" style="color:var(--accent);"></i>
+            AI Processing Pipeline
+          </div>
+          <div class="pipeline-sub-text">Steps triggered on form submission</div>
+
+          <div id="pipeline-steps">
+            <div class="pipeline-step" data-step="1">
+              <div class="p-step-icon"><i class="bi bi-text-paragraph"></i></div>
+              <div>
+                <div class="p-step-name">Symptom Analysis</div>
+                <div class="p-step-desc">Natural language parsing</div>
+              </div>
+              <div class="p-step-status"><i class="bi bi-circle"></i></div>
+            </div>
+
+            <div class="pipeline-step" data-step="2">
+              <div class="p-step-icon"><i class="bi bi-search-heart"></i></div>
+              <div>
+                <div class="p-step-name">Condition Identification</div>
+                <div class="p-step-desc">Medical database matching</div>
+              </div>
+              <div class="p-step-status"><i class="bi bi-circle"></i></div>
+            </div>
+
+            <div class="pipeline-step" data-step="3">
+              <div class="p-step-icon"><i class="bi bi-graph-up-arrow"></i></div>
+              <div>
+                <div class="p-step-name">Risk Assessment</div>
+                <div class="p-step-desc">Severity classification</div>
+              </div>
+              <div class="p-step-status"><i class="bi bi-circle"></i></div>
+            </div>
+
+            <div class="pipeline-step" data-step="4">
+              <div class="p-step-icon"><i class="bi bi-file-earmark-medical"></i></div>
+              <div>
+                <div class="p-step-name">Report Generation</div>
+                <div class="p-step-desc">Personalized recommendations</div>
+              </div>
+              <div class="p-step-status"><i class="bi bi-circle"></i></div>
+            </div>
+          </div>
+
+          <div class="pipeline-pulse">
+            <span class="pipeline-pulse-dot"></span>
+            System ready — awaiting input
+          </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="d-flex flex-column gap-3">
+          <div style="background:rgba(26,86,219,0.06);border:1px solid rgba(26,86,219,0.15);border-radius:var(--radius);padding:18px 20px;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--primary);margin-bottom:6px;">
+              <i class="bi bi-shield-check me-2"></i>Privacy First
+            </div>
+            <div style="font-size:0.78rem;color:var(--muted);line-height:1.55;">
+              Your symptoms are processed in real-time and not stored in any database. Each session is completely private.
+            </div>
+          </div>
+
+          <div style="background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.2);border-radius:var(--radius);padding:18px 20px;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--accent-dark);margin-bottom:6px;">
+              <i class="bi bi-lightning-charge-fill me-2"></i>Instant Results
+            </div>
+            <div style="font-size:0.78rem;color:var(--muted);line-height:1.55;">
+              The AI pipeline processes your input across four specialized agents in parallel, delivering results in under 3 seconds.
+            </div>
+          </div>
+
+          <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:18px 20px;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--danger);margin-bottom:6px;">
+              <i class="bi bi-telephone-fill me-2"></i>Emergency?
+            </div>
+            <div style="font-size:0.78rem;color:var(--muted);line-height:1.55;">
+              If you are experiencing a life-threatening emergency, stop and call 911 now.
+              Do not wait for the AI assessment.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Character counter for symptoms textarea */
+  const ta = document.getElementById('symptoms-input');
+  const cc = document.getElementById('char-count');
+  if (ta && cc) {
+    ta.addEventListener('input', () => {
+      const len = ta.value.length;
+      cc.textContent = `${len} / 500`;
+      cc.style.color = len > 450 ? 'var(--warning-dark)' : 'var(--muted)';
+    });
+  }
+</script>
+{% endblock %}

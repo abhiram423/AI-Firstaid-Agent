@@ -1,0 +1,687 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Healthcare Guidance — MedAssist AI{% endblock %}
+{% block nav_guide %}active{% endblock %}
+
+{% block extra_head %}
+<!-- Tailwind Play CDN — preflight disabled so it layers cleanly on top of the site's existing Bootstrap chrome (navbar/footer) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: { preflight: false },
+    theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } }
+  };
+</script>
+<style>
+  @keyframes wz-slide-in { 0% { opacity:0; transform:translateX(18px); } 100% { opacity:1; transform:translateX(0); } }
+  .wz-panel-enter { animation: wz-slide-in .45s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes wz-fade-up { 0% { opacity:0; transform:translateY(8px); } 100% { opacity:1; transform:translateY(0); } }
+  .wz-fade-up { animation: wz-fade-up .35s ease both; }
+  #wizard-root, #wizard-root * { box-sizing: border-box; }
+  #wizard-root input[type=number]::-webkit-outer-spin-button,
+  #wizard-root input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #bp-dropdown::-webkit-scrollbar { width: 6px; }
+  #bp-dropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+  /* Preflight is off, so native <button> chrome (grey bg + border) leaks through.
+     Strip it only where a Tailwind bg-*/border-* class isn't already doing that job,
+     using :not() so this never fights the cascade order of the Tailwind CDN stylesheet. */
+  #wizard-root button { cursor: pointer; font-family: inherit; text-align: left; }
+  #wizard-root button:not([class*="bg-"]) { background: transparent; }
+  #wizard-root button:not([class*="border-"]) { border: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<section style="background:var(--gradient-hero);padding:100px 0 40px;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(59,130,246,0.2) 0%,transparent 70%);top:-80px;right:-80px;border-radius:50%;animation:orb-float 9s ease-in-out infinite;"></div>
+  <div class="container position-relative">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{% url 'home' %}" style="color:rgba(255,255,255,0.5);font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:6px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+        <i class="bi bi-arrow-left"></i> Home
+      </a>
+      <span style="color:rgba(255,255,255,0.2);">/</span>
+      <span style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;">Healthcare Guidance</span>
+    </div>
+    <div class="hero-badge" style="margin-bottom:12px;">
+      <span class="hero-badge-dot"></span> Guided Healthcare Workflow
+    </div>
+    <h1 style="font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:#fff;letter-spacing:-0.6px;margin-bottom:8px;">
+      Get Personalized First Aid Guidance
+    </h1>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;">
+      Search any body part, or simply describe what happened in your own words — our AI does the rest.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     GUIDE WIZARD (Tailwind widget)
+════════════════════════════════════════════ -->
+<section style="background:var(--bg);padding:40px 0 80px;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9">
+
+        <div id="wizard-root" class="font-sans text-slate-800 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 p-md-8" style="padding:28px;">
+          <div style="padding:8px;" class="p-md-2">
+
+          <!-- ── Progress ── -->
+          <div class="mb-8">
+            <div class="grid grid-cols-4 gap-2 mb-3" id="wz-indicators">
+              <div class="flex flex-col items-center gap-1.5 text-center" data-indicator="1">
+                <div class="wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300">1</div>
+                <span class="wz-ind-label text-[11px] font-semibold text-slate-500 leading-tight">Location</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5 text-center" data-indicator="2">
+                <div class="wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300">2</div>
+                <span class="wz-ind-label text-[11px] font-semibold text-slate-500 leading-tight">What Happened</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5 text-center" data-indicator="3">
+                <div class="wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300">3</div>
+                <span class="wz-ind-label text-[11px] font-semibold text-slate-500 leading-tight">Severity</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5 text-center" data-indicator="4">
+                <div class="wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300">4</div>
+                <span class="wz-ind-label text-[11px] font-semibold text-slate-500 leading-tight">Your Details</span>
+              </div>
+            </div>
+            <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div id="wz-progress-fill" class="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- ═══ STEP 1 — LOCATION ═══ -->
+          <div id="wz-step-1" class="wz-panel">
+            <div class="mb-6">
+              <span class="inline-block text-[11px] font-bold tracking-wide uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">Step 1 of 4</span>
+              <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight m-0">Where are you injured?</h2>
+              <p class="text-slate-500 text-sm mt-1 mb-0">Search the exact area, or describe what happened in plain English.</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="inline-flex items-center bg-slate-100 rounded-xl p-1 mb-5">
+              <button type="button" class="wz-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200" data-tab="search">
+                <i class="bi bi-search mr-1"></i> Search Body Part
+              </button>
+              <button type="button" class="wz-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200" data-tab="nl">
+                <i class="bi bi-chat-square-text mr-1"></i> Describe What Happened
+              </button>
+            </div>
+
+            <!-- TAB PANEL: Search combobox -->
+            <div id="wz-tab-search" class="wz-tab-panel">
+              <div class="relative">
+                <i class="bi bi-search absolute text-slate-400" style="left:16px;top:50%;transform:translateY(-50%);"></i>
+                <input type="text" id="bp-search-input" autocomplete="off" placeholder="Type an area — e.g. Ankle, Scalp, Shoulder, Knee..."
+                  class="w-full rounded-xl border-2 border-slate-200 bg-white text-slate-800 text-sm font-medium outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  style="padding:14px 16px 14px 44px;" />
+                <div id="bp-dropdown" class="hidden absolute z-30 w-full rounded-xl border border-slate-200 bg-white shadow-xl overflow-y-auto"
+                     style="margin-top:8px;max-height:320px;padding:8px;box-shadow:0 20px 40px -12px rgba(15,23,42,0.18);"></div>
+              </div>
+
+              <div id="bp-selected-chip" class="hidden items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-semibold"
+                   style="margin-top:16px;padding:10px 16px;">
+                <i class="bi bi-check-circle-fill"></i>
+                <span id="bp-selected-label"></span>
+                <button type="button" id="bp-selected-clear" class="text-emerald-500" style="margin-left:6px;"><i class="bi bi-x-lg"></i></button>
+              </div>
+
+              <div style="margin-top:20px;">
+                <div class="text-xs font-semibold text-slate-400" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Common areas</div>
+                <div class="flex flex-wrap gap-2" id="bp-quick-picks"></div>
+              </div>
+            </div>
+
+            <!-- TAB PANEL: Natural language triage -->
+            <div id="wz-tab-nl" class="wz-tab-panel hidden">
+              <textarea id="nl-input" rows="4" placeholder='e.g. "I sliced my palm with a kitchen knife while cutting vegetables"'
+                class="w-full rounded-xl border-2 border-slate-200 bg-white text-slate-800 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                style="padding:14px;resize:none;"></textarea>
+              <div class="flex items-center justify-between" style="margin-top:12px;">
+                <span class="text-xs text-slate-400">Our AI reads your description to find the body region and injury category — in parallel.</span>
+                <button type="button" id="nl-analyze-btn" disabled
+                  class="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold rounded-xl transition-all duration-200 disabled:opacity-40"
+                  style="padding:10px 20px;white-space:nowrap;">
+                  <i class="bi bi-stars"></i> Analyze with AI
+                </button>
+              </div>
+
+              <!-- loading -->
+              <div id="nl-loading" class="hidden rounded-xl bg-blue-50 border border-blue-100" style="margin-top:20px;padding:20px;">
+                <div class="flex items-center gap-3" style="margin-bottom:12px;">
+                  <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
+                  </span>
+                  <span class="text-sm font-semibold text-blue-700">Scanning your description…</span>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2 text-xs font-medium text-slate-500" id="nl-track-region">
+                    <i class="bi bi-circle text-slate-300"></i> Extracting body region
+                  </div>
+                  <div class="flex items-center gap-2 text-xs font-medium text-slate-500" id="nl-track-category">
+                    <i class="bi bi-circle text-slate-300"></i> Extracting trauma category
+                  </div>
+                </div>
+              </div>
+
+              <!-- result -->
+              <div id="nl-result" class="hidden wz-fade-up rounded-xl bg-emerald-50 border border-emerald-200" style="margin-top:20px;padding:20px;">
+                <div class="flex items-center gap-2 text-emerald-600 text-xs font-bold" style="text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;">
+                  <i class="bi bi-stars"></i> AI Suggestion
+                </div>
+                <div class="flex flex-wrap gap-2" style="margin-bottom:12px;">
+                  <span class="inline-flex items-center gap-1.5 bg-white border border-emerald-200 rounded-lg text-sm font-semibold text-slate-700" style="padding:8px 14px;">
+                    <span id="nl-result-region-icon"></span> <span id="nl-result-region-label"></span>
+                  </span>
+                  <span class="inline-flex items-center gap-1.5 bg-white border border-emerald-200 rounded-lg text-sm font-semibold text-slate-700" style="padding:8px 14px;">
+                    <i class="bi bi-tags-fill text-emerald-500"></i> <span id="nl-result-incident-label"></span>
+                  </span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button type="button" id="nl-confirm-btn" class="text-xs font-bold bg-emerald-500 text-white rounded-lg" style="padding:9px 16px;">
+                    Looks right, continue <i class="bi bi-arrow-right ms-1"></i>
+                  </button>
+                  <button type="button" id="nl-retry-btn" class="text-xs font-semibold text-slate-500">Try describing again</button>
+                </div>
+              </div>
+
+              <div id="nl-noresult" class="hidden rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm" style="margin-top:20px;padding:16px;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> We couldn't confidently identify the area — try the search tab, or mention the body part by name.
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-slate-100" style="margin-top:32px;padding-top:24px;">
+              <div></div>
+              <button type="button" id="wz-next-1" disabled onclick="goToStep(2)"
+                class="guide-next-btn inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl transition-all duration-200 disabled:opacity-40"
+                style="padding:12px 24px;">
+                Next <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══ STEP 2 — INCIDENT MATRIX ═══ -->
+          <div id="wz-step-2" class="wz-panel hidden">
+            <div class="mb-6">
+              <span class="inline-block text-[11px] font-bold tracking-wide uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">Step 2 of 4</span>
+              <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight m-0">
+                What happened to your <span id="wz-step2-bodypart-label" class="text-blue-600">area</span>?
+              </h2>
+              <p class="text-slate-500 text-sm mt-1 mb-0">Select the symptom or injury type that best matches your situation.</p>
+            </div>
+
+            <div id="incident-grid" class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));"></div>
+
+            <div class="flex items-center justify-between border-t border-slate-100" style="margin-top:32px;padding-top:24px;">
+              <button type="button" class="guide-back-btn inline-flex items-center gap-2 text-slate-500 text-sm font-semibold" onclick="goToStep(1)">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button type="button" id="wz-next-2" disabled onclick="goToStep(3)"
+                class="guide-next-btn inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl transition-all duration-200 disabled:opacity-40"
+                style="padding:12px 24px;">
+                Next <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══ STEP 3 — SEVERITY ═══ -->
+          <div id="wz-step-3" class="wz-panel hidden">
+            <div class="mb-6">
+              <span class="inline-block text-[11px] font-bold tracking-wide uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">Step 3 of 4</span>
+              <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight m-0">How severe is it?</h2>
+              <p class="text-slate-500 text-sm mt-1 mb-0">Rate the severity so we can calibrate the right level of guidance.</p>
+            </div>
+
+            <div id="severity-grid" class="grid gap-3" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));"></div>
+
+            <div class="flex items-center justify-between border-t border-slate-100" style="margin-top:32px;padding-top:24px;">
+              <button type="button" class="guide-back-btn inline-flex items-center gap-2 text-slate-500 text-sm font-semibold" onclick="goToStep(2)">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              <button type="button" id="wz-next-3" disabled onclick="goToStep(4)"
+                class="guide-next-btn inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl transition-all duration-200 disabled:opacity-40"
+                style="padding:12px 24px;">
+                Next <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ═══ STEP 4 — PATIENT DETAILS ═══ -->
+          <div id="wz-step-4" class="wz-panel hidden">
+            <div class="mb-6">
+              <span class="inline-block text-[11px] font-bold tracking-wide uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">Step 4 of 4 — Final Step</span>
+              <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight m-0">Tell us about yourself</h2>
+              <p class="text-slate-500 text-sm mt-1 mb-0">Optional details help personalise your report. Your data is never stored beyond this session.</p>
+            </div>
+
+            <!-- Summary -->
+            <div class="flex flex-wrap gap-3 bg-slate-50 border border-slate-200 rounded-xl" style="padding:16px 20px;margin-bottom:24px;">
+              <div class="flex flex-col" style="min-width:120px;">
+                <span class="text-[11px] font-bold text-slate-400" style="text-transform:uppercase;letter-spacing:.04em;">Location</span>
+                <span class="text-sm font-bold text-slate-800" id="ss-body">—</span>
+              </div>
+              <div class="flex flex-col" style="min-width:140px;">
+                <span class="text-[11px] font-bold text-slate-400" style="text-transform:uppercase;letter-spacing:.04em;">Injury Type</span>
+                <span class="text-sm font-bold text-slate-800" id="ss-incident">—</span>
+              </div>
+              <div class="flex flex-col" style="min-width:100px;">
+                <span class="text-[11px] font-bold text-slate-400" style="text-transform:uppercase;letter-spacing:.04em;">Severity</span>
+                <span class="text-sm font-bold text-slate-800" id="ss-severity">—</span>
+              </div>
+            </div>
+
+            <form id="guide-form" method="POST" action="{% url 'guide' %}" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="body_part" id="hf-body" value="">
+              <input type="hidden" name="incident"  id="hf-incident" value="">
+              <input type="hidden" name="severity"  id="hf-severity" value="">
+
+              <div class="grid gap-3" style="grid-template-columns:1.4fr 1fr;margin-bottom:16px;">
+                <div>
+                  <label class="text-xs font-bold text-slate-500" style="display:block;margin-bottom:6px;"><i class="bi bi-person me-1"></i>Patient Name</label>
+                  <input type="text" name="name" autocomplete="off" placeholder="Enter your name (optional)"
+                    class="w-full rounded-xl border-2 border-slate-200 bg-white text-slate-800 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    style="padding:12px 14px;">
+                </div>
+                <div>
+                  <label class="text-xs font-bold text-slate-500" style="display:block;margin-bottom:6px;"><i class="bi bi-calendar3 me-1"></i>Age</label>
+                  <input type="number" name="age" placeholder="Age" min="0" max="120"
+                    class="w-full rounded-xl border-2 border-slate-200 bg-white text-slate-800 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    style="padding:12px 14px;">
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px;">
+                <label class="text-xs font-bold text-slate-500" style="display:block;margin-bottom:6px;">
+                  <i class="bi bi-clipboard2-pulse me-1"></i>Medical History / Additional Details
+                  <span class="text-slate-400" style="font-weight:400;">(optional)</span>
+                </label>
+                <textarea name="details" rows="4" placeholder="Any relevant history: how it happened, duration of symptoms, existing conditions, allergies…"
+                  class="w-full rounded-xl border-2 border-slate-200 bg-white text-slate-800 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  style="padding:12px 14px;resize:none;"></textarea>
+              </div>
+
+              <div class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl" style="padding:14px 16px;margin-bottom:24px;">
+                <i class="bi bi-exclamation-triangle-fill text-red-500" style="margin-top:2px;"></i>
+                <div class="text-xs text-slate-600" style="line-height:1.6;">
+                  <strong class="text-slate-800">Medical Disclaimer:</strong> This guidance is for first aid support only. It is not a substitute for professional medical diagnosis or treatment. For emergencies, call
+                  <a href="tel:911" class="text-red-600 font-bold">911</a> immediately.
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <button type="button" class="guide-back-btn inline-flex items-center gap-2 text-slate-500 text-sm font-semibold" onclick="goToStep(3)">
+                  <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <button type="submit" id="submit-btn"
+                  class="guide-submit-btn inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl transition-all duration-200"
+                  style="padding:13px 26px;">
+                  <span class="btn-text flex items-center gap-2">
+                    <i class="bi bi-clipboard2-heart-fill"></i> Generate My Healthcare Report
+                  </span>
+                  <span class="btn-loading" style="display:none;align-items:center;gap:8px;">
+                    <span class="spinner-border spinner-border-sm text-white" role="status"></span>
+                    Generating Report...
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // ── Data: comprehensive anatomical regions ────────────────────────
+  const BODY_PARTS = [
+    { value:'scalp',     label:'Scalp',            icon:'🧠', keywords:['head','skull','crown','hair'] },
+    { value:'forehead', label:'Forehead',         icon:'🤕', keywords:['brow'] },
+    { value:'eye',       label:'Eye',              icon:'👁️', keywords:['eyelid','eyeball'] },
+    { value:'ear',       label:'Ear',              icon:'👂', keywords:['eardrum'] },
+    { value:'nose',      label:'Nose',             icon:'👃', keywords:['nostril','nosebleed'] },
+    { value:'mouth',     label:'Mouth / Teeth',    icon:'👄', keywords:['tooth','teeth','lip','gum'] },
+    { value:'jaw',       label:'Jaw',              icon:'🦷', keywords:['chin'] },
+    { value:'neck',      label:'Neck',             icon:'🧣', keywords:['throat'] },
+    { value:'shoulder',  label:'Shoulder',         icon:'🦴', keywords:['collarbone','clavicle'] },
+    { value:'chest',     label:'Chest',            icon:'❤️', keywords:['ribs','sternum','rib cage'] },
+    { value:'back',      label:'Back',             icon:'🔙', keywords:['spine','lower back'] },
+    { value:'abdomen',   label:'Abdomen',          icon:'🫃', keywords:['stomach','belly','gut'] },
+    { value:'hip',       label:'Hip',              icon:'🦴', keywords:['pelvis'] },
+    { value:'arm',       label:'Upper Arm',        icon:'💪', keywords:['bicep','tricep'] },
+    { value:'elbow',     label:'Elbow',            icon:'💪', keywords:[] },
+    { value:'forearm',   label:'Forearm',          icon:'💪', keywords:[] },
+    { value:'wrist',     label:'Wrist',            icon:'🖐️', keywords:[] },
+    { value:'hand',      label:'Hand',             icon:'🖐️', keywords:['palm'] },
+    { value:'finger',    label:'Finger / Thumb',   icon:'☝️', keywords:['thumb','fingernail'] },
+    { value:'groin',     label:'Groin',            icon:'🦵', keywords:[] },
+    { value:'thigh',     label:'Thigh',            icon:'🦵', keywords:[] },
+    { value:'knee',      label:'Knee',             icon:'🦵', keywords:['kneecap'] },
+    { value:'shin',      label:'Shin',             icon:'🦵', keywords:[] },
+    { value:'calf',      label:'Calf',             icon:'🦵', keywords:[] },
+    { value:'ankle',     label:'Ankle',            icon:'🦶', keywords:[] },
+    { value:'foot',      label:'Foot',             icon:'🦶', keywords:[] },
+    { value:'toe',       label:'Toe',              icon:'🦶', keywords:['toenail'] },
+    { value:'skin',      label:'General Skin',     icon:'🩹', keywords:['rash','all over'] },
+  ];
+  const QUICK_PICKS = ['scalp','hand','wrist','ankle','knee','shoulder','back','chest','foot'];
+
+  // ── Data: expanded incident matrix ─────────────────────────────────
+  const INCIDENTS = [
+    { value:'bleeding',      label:'Bleeding',            icon:'bi-droplet-fill',              color:'red',      desc:'Open wound with blood loss', keywords:['bleed','blood','bleeding','hemorrhag'] },
+    { value:'laceration',    label:'Laceration / Cut',    icon:'bi-scissors',                  color:'blue',     desc:'Sliced or torn skin from a sharp object', keywords:['cut','slice','sliced','knife','laceration','gash'] },
+    { value:'puncture',      label:'Puncture Wound',      icon:'bi-exclamation-diamond-fill',  color:'indigo',  desc:'Deep wound from a pointed object', keywords:['puncture','stab','nail','splinter','impaled'] },
+    { value:'burn',          label:'Thermal Burn',        icon:'bi-fire',                      color:'orange',  desc:'Heat, flame, or scald injury', keywords:['burn','scald','fire','hot ','boiling'] },
+    { value:'chemical_burn', label:'Chemical Burn',       icon:'bi-droplet-half',              color:'amber',   desc:'Skin contact with a caustic substance', keywords:['chemical','acid','bleach','corrosive'] },
+    { value:'fracture',      label:'Fracture',            icon:'bi-bandaid-fill',              color:'slate',   desc:'Suspected broken or cracked bone', keywords:['fracture','broken','break','snap','crack'] },
+    { value:'sprain_strain', label:'Sprain / Strain',     icon:'bi-activity',                  color:'purple',  desc:'Overstretched ligament or muscle', keywords:['sprain','strain','twisted','pulled','rolled'] },
+    { value:'dislocation',   label:'Dislocation',         icon:'bi-arrows-angle-contract',     color:'fuchsia', desc:'Joint forced out of its normal position', keywords:['dislocat','popped out','out of socket'] },
+    { value:'bruise',        label:'Bruise / Contusion',  icon:'bi-circle-half',               color:'violet',  desc:'Discolouration from blunt impact', keywords:['bruise','contusion','black and blue'] },
+    { value:'swelling',      label:'Swelling',            icon:'bi-circle-fill',               color:'cyan',    desc:'Inflammation or puffiness', keywords:['swelling','swollen','inflam'] },
+    { value:'sting_bite',    label:'Sting / Bite',        icon:'bi-bug-fill',                  color:'lime',    desc:'Insect, animal, or marine sting/bite', keywords:['sting','bite','bit by','bee','wasp','spider','snake'] },
+    { value:'allergic',      label:'Allergic Reaction',   icon:'bi-flower2',                   color:'pink',    desc:'Hives, itching, or swelling from allergen exposure', keywords:['allerg','hives','itch','reaction'] },
+    { value:'internal_pain', label:'Internal Pain',       icon:'bi-lightning-charge-fill',     color:'rose',    desc:'Deep, non-visible pain without an open wound', keywords:['internal','ache','sharp pain','cramp'] },
+  ];
+
+  const SEVERITIES = [
+    { value:'mild',     label:'Mild',     icon:'🙂', color:'emerald', desc:'Minor discomfort — manageable at home with basic first aid.', examples:'e.g. Small cut, minor bruise, light burn' },
+    { value:'moderate', label:'Moderate', icon:'😣', color:'amber',   desc:'Noticeable pain or function loss — may need medical review.', examples:'e.g. Deep cut, sprained ankle, moderate burn' },
+    { value:'severe',   label:'Severe',   icon:'🚨', color:'red',     desc:'Intense pain, heavy bleeding, or possible emergency — seek care urgently.', examples:'e.g. Head trauma, chest pain, severe burns' },
+  ];
+
+  // ── State Tracking Engine ────────────────────────────────────────
+  const state = { bodyPart: null, incident: null, severity: null, aiSuggestedIncident: null };
+
+  // ── Progress / step navigation ──────────────────────────────────
+  function updateProgress(step) {
+    document.querySelectorAll('#wz-indicators [data-indicator]').forEach(el => {
+      const i = parseInt(el.dataset.indicator, 10);
+      const dot = el.querySelector('.wz-dot');
+      const label = el.querySelector('.wz-ind-label');
+      if (i < step) {
+        dot.className = 'wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 bg-emerald-500 text-white';
+        dot.innerHTML = '<i class="bi bi-check-lg"></i>';
+        label.className = 'wz-ind-label text-[11px] font-semibold text-emerald-600 leading-tight';
+      } else if (i === step) {
+        dot.className = 'wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 bg-blue-600 text-white ring-4 ring-blue-100';
+        dot.shadow = i;
+        dot.textContent = i;
+        label.className = 'wz-ind-label text-[11px] font-semibold text-blue-600 leading-tight';
+      } else {
+        dot.className = 'wz-dot h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 bg-slate-100 text-slate-400';
+        dot.textContent = i;
+        label.className = 'wz-ind-label text-[11px] font-semibold text-slate-400 leading-tight';
+      }
+    });
+    document.getElementById('wz-progress-fill').style.width = (((step - 1) / 3) * 100) + '%';
+  }
+
+  window.goToStep = function (n) {
+    document.querySelectorAll('.wz-panel').forEach(p => p.classList.add('hidden'));
+    const panel = document.getElementById('wz-step-' + n);
+    panel.classList.remove('hidden');
+    panel.classList.add('wz-panel-enter');
+    setTimeout(() => panel.classList.remove('wz-panel-enter'), 450);
+    updateProgress(n);
+    if (n === 2) renderIncidentGrid();
+    if (n === 3) renderSeverityGrid();
+    if (n === 4) populateSummary();
+    document.getElementById('wizard-root').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // ── Step 1: tabs ─────────────────────────────────────────────────
+  const tabBtns = document.querySelectorAll('.wz-tab-btn');
+  function setTab(tab) {
+    tabBtns.forEach(b => {
+      const active = b.dataset.tab === tab;
+      b.className = 'wz-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ' +
+        (active ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500');
+    });
+    document.getElementById('wz-tab-search').classList.toggle('hidden', tab !== 'search');
+    document.getElementById('wz-tab-nl').classList.toggle('hidden', tab !== 'nl');
+  }
+  tabBtns.forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  setTab('search');
+
+  // ── Step 1: search combobox ─────────────────────────────────────
+  const bpInput = document.getElementById('bp-search-input');
+  const bpDropdown = document.getElementById('bp-dropdown');
+
+  function renderDropdown(query) {
+    const q = query.trim().toLowerCase();
+    const matches = !q ? BODY_PARTS : BODY_PARTS.filter(bp => {
+      const hay = [bp.label.toLowerCase(), bp.value, ...bp.keywords].join(' ');
+      return hay.includes(q);
+    });
+    bpDropdown.innerHTML = matches.length ? matches.map(bp => `
+      <button type="button" data-bp="${bp.value}" class="bp-option w-full flex items-center gap-3 rounded-lg text-left transition-colors duration-150" style="padding:10px 12px;">
+        <span style="font-size:20px;">${bp.icon}</span>
+        <span class="text-sm font-semibold text-slate-700">${bp.label}</span>
+      </button>
+    `).join('') : `<div class="text-center text-sm text-slate-400" style="padding:24px 12px;">No matching body part found.</div>`;
+    bpDropdown.classList.remove('hidden');
+    bpDropdown.querySelectorAll('.bp-option').forEach(btn => {
+      btn.addEventListener('mouseenter', () => btn.classList.add('bg-blue-50'));
+      btn.addEventListener('mouseleave', () => btn.classList.remove('bg-blue-50'));
+      btn.addEventListener('click', () => {
+        selectBodyPart(btn.dataset.bp);
+        bpDropdown.classList.add('hidden');
+        bpInput.value = '';
+      });
+    });
+  }
+
+  function selectBodyPart(value) {
+    const bp = BODY_PARTS.find(b => b.value === value);
+    if (!bp) return;
+    state.bodyPart = bp;
+    const chip = document.getElementById('bp-selected-chip');
+    chip.style.display = 'inline-flex';
+    chip.classList.remove('hidden');
+    document.getElementById('bp-selected-label').textContent = bp.icon + '  ' + bp.label;
+    document.getElementById('wz-next-1').disabled = false;
+  }
+
+  bpInput.addEventListener('focus', () => renderDropdown(bpInput.value));
+  bpInput.addEventListener('input', () => renderDropdown(bpInput.value));
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#bp-search-input') && !e.target.closest('#bp-dropdown')) {
+      bpDropdown.classList.add('hidden');
+    }
+  });
+  document.getElementById('bp-selected-clear').addEventListener('click', () => {
+    state.bodyPart = null;
+    const chip = document.getElementById('bp-selected-chip');
+    chip.style.display = 'none';
+    chip.classList.add('hidden');
+    document.getElementById('wz-next-1').disabled = true;
+  });
+
+  const qp = document.getElementById('bp-quick-picks');
+  QUICK_PICKS.forEach(val => {
+    const bp = BODY_PARTS.find(b => b.value === val);
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700';
+    chip.style.padding = '7px 12px';
+    chip.innerHTML = `${bp.icon} ${bp.label}`;
+    chip.addEventListener('click', () => selectBodyPart(bp.value));
+    qp.appendChild(chip);
+  });
+
+  // ── Step 1: natural language triage ────────────────────────────
+  const nlInput = document.getElementById('nl-input');
+  const nlAnalyzeBtn = document.getElementById('nl-analyze-btn');
+  nlInput.addEventListener('input', () => { nlAnalyzeBtn.disabled = nlInput.value.trim().length < 8; });
+
+  function analyzeText(text) {
+    const lower = text.toLowerCase();
+    const scoreMatch = (list, getKeywords) => {
+      let best = null, bestLen = 0;
+      list.forEach(item => {
+        getKeywords(item).forEach(k => {
+          if (k && lower.includes(k) && k.length > bestLen) { best = item; bestLen = k.length; }
+        });
+      });
+      return best;
+    };
+    const matchedBody = scoreMatch(BODY_PARTS, bp => [bp.label.toLowerCase(), bp.value, ...bp.keywords]);
+    const matchedIncident = scoreMatch(INCIDENTS, inc => [inc.label.toLowerCase(), ...inc.keywords]);
+    return { matchedBody, matchedIncident };
+  }
+
+  nlAnalyzeBtn.addEventListener('click', () => {
+    document.getElementById('nl-result').classList.add('hidden');
+    document.getElementById('nl-noresult').classList.add('hidden');
+    const loading = document.getElementById('nl-loading');
+    loading.classList.remove('hidden');
+    const trackRegion = document.getElementById('nl-track-region');
+    const trackCategory = document.getElementById('nl-track-category');
+    trackRegion.innerHTML = '<i class="bi bi-circle text-slate-300"></i> Extracting body region';
+    trackCategory.innerHTML = '<i class="bi bi-circle text-slate-300"></i> Extracting trauma category';
+
+    const { matchedBody, matchedIncident } = analyzeText(nlInput.value);
+
+    setTimeout(() => {
+      trackRegion.innerHTML = matchedBody
+        ? '<i class="bi bi-check-circle-fill text-emerald-500"></i> Body region identified'
+        : '<i class="bi bi-x-circle-fill text-amber-500"></i> Body region unclear';
+    }, 550);
+
+    setTimeout(() => {
+      trackCategory.innerHTML = matchedIncident
+        ? '<i class="bi bi-check-circle-fill text-emerald-500"></i> Trauma category identified'
+        : '<i class="bi bi-x-circle-fill text-amber-500"></i> Trauma category unclear';
+    }, 1050);
+
+    setTimeout(() => {
+      loading.classList.add('hidden');
+      if (matchedBody) {
+        document.getElementById('nl-result-region-icon').textContent = matchedBody.icon;
+        document.getElementById('nl-result-region-label').textContent = matchedBody.label;
+        document.getElementById('nl-result-incident-label').textContent = matchedIncident ? matchedIncident.label : 'Not specified — pick in next step';
+        document.getElementById('nl-result').classList.remove('hidden');
+        state._pendingBody = matchedBody;
+        state._pendingIncident = matchedIncident;
+      } else {
+        document.getElementById('nl-noresult').classList.remove('hidden');
+      }
+    }, 1450);
+  });
+
+  document.getElementById('nl-confirm-btn').addEventListener('click', () => {
+    selectBodyPart(state._pendingBody.value);
+    state.aiSuggestedIncident = state._pendingIncident ? state._pendingIncident.value : null;
+    if (state._pendingIncident) state.incident = state._pendingIncident;
+    goToStep(2);
+  });
+  document.getElementById('nl-retry-btn').addEventListener('click', () => {
+    document.getElementById('nl-result').classList.add('hidden');
+    nlInput.focus();
+  });
+
+  // ── Step 2: incident matrix ─────────────────────────────────────
+  function renderIncidentGrid() {
+    document.getElementById('wz-step2-bodypart-label').textContent = state.bodyPart ? state.bodyPart.label.toLowerCase() : 'area';
+    const grid = document.getElementById('incident-grid');
+    grid.innerHTML = INCIDENTS.map(inc => {
+      const isSelected = state.incident && state.incident.value === inc.value;
+      const isSuggested = state.aiSuggestedIncident === inc.value && !isSelected;
+      const borderCls = isSelected
+        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100'
+        : 'border-slate-200 bg-white hover:border-blue-300';
+      return `
+      <button type="button" data-inc="${inc.value}" class="incident-card relative text-left rounded-xl border-2 transition-all duration-200 ${borderCls}" style="padding:16px;">
+        ${isSuggested ? `<span class="absolute bg-emerald-500 text-white text-[10px] font-bold rounded-full shadow" style="top:-8px;right:-8px;padding:2px 8px;">AI Suggested</span>` : ''}
+        <div class="flex items-center justify-center rounded-lg bg-${inc.color}-50 text-${inc.color}-600" style="height:40px;width:40px;font-size:18px;margin-bottom:12px;">
+          <i class="bi ${inc.icon}"></i>
+        </div>
+        <div class="text-sm font-bold text-slate-800">${inc.label}</div>
+        <div class="text-xs text-slate-500" style="margin-top:2px;line-height:1.4;">${inc.desc}</div>
+        ${isSelected ? `<div class="absolute text-blue-600" style="top:12px;right:12px;"><i class="bi bi-check-circle-fill"></i></div>` : ''}
+      </button>`;
+    }).join('');
+    grid.querySelectorAll('.incident-card').forEach(btn => btn.addEventListener('click', () => {
+      state.incident = INCIDENTS.find(i => i.value === btn.dataset.inc);
+      document.getElementById('wz-next-2').disabled = false;
+      renderIncidentGrid();
+    }));
+  }
+
+  // ── Step 3: severity ────────────────────────────────────────────
+  function renderSeverityGrid() {
+    const grid = document.getElementById('severity-grid');
+    grid.innerHTML = SEVERITIES.map(sv => {
+      const isSelected = state.severity === sv.value;
+      const borderCls = isSelected
+        ? `border-${sv.color}-500 bg-${sv.color}-50 ring-4 ring-${sv.color}-100`
+        : 'border-slate-200 bg-white hover:border-slate-300';
+      return `
+      <button type="button" data-sev="${sv.value}" class="severity-card relative text-left rounded-xl border-2 transition-all duration-200 ${borderCls}" style="padding:20px;">
+        <div class="absolute rounded-l-xl bg-${sv.color}-500" style="top:0;left:0;bottom:0;width:5px;"></div>
+        <div style="font-size:26px;margin-bottom:8px;">${sv.icon}</div>
+        <div class="text-base font-extrabold text-slate-800">${sv.label}</div>
+        <div class="text-xs text-slate-500" style="margin-top:4px;line-height:1.5;">${sv.desc}</div>
+        <div class="text-[11px] font-semibold text-${sv.color}-600" style="margin-top:8px;">${sv.examples}</div>
+        ${isSelected ? `<div class="absolute text-${sv.color}-600" style="top:16px;right:16px;"><i class="bi bi-check-circle-fill"></i></div>` : ''}
+      </button>`;
+    }).join('');
+    grid.querySelectorAll('.severity-card').forEach(btn => btn.addEventListener('click', () => {
+      state.severity = btn.dataset.sev;
+      document.getElementById('wz-next-3').disabled = false;
+      renderSeverityGrid();
+    }));
+  }
+
+  // ── Step 4: Synchronize Values Into Hidden Form Fields ──────────
+  // 🌟 THE BIG UNIFICATION FIX: Reading from the active 'state' engine parameters
+  function populateSummary() {
+    const bodyLabel = state.bodyPart ? state.bodyPart.label : '—';
+    const incidentLabel = state.incident ? state.incident.label : '—';
+    const severityLabel = state.severity ? (state.severity.charAt(0).toUpperCase() + state.severity.slice(1)) : '—';
+
+    // 1. Sync Frontend preview block layouts
+    if (document.getElementById('ss-body')) document.getElementById('ss-body').textContent = bodyLabel;
+    if (document.getElementById('ss-incident')) document.getElementById('ss-incident').textContent = incidentLabel;
+    if (document.getElementById('ss-severity')) document.getElementById('ss-severity').textContent = severityLabel;
+    
+    // 2. 🎯 Fix form elements inputs injection before hitting submit actions
+    document.getElementById('hf-body').value     = state.bodyPart ? state.bodyPart.value : '';
+    document.getElementById('hf-incident').value = state.incident ? state.incident.value : '';
+    document.getElementById('hf-severity').value = state.severity ? state.severity : '';
+    
+    console.log("Hidden Form Inputs Synced Safely:", {
+      body_part: document.getElementById('hf-body').value,
+      incident: document.getElementById('hf-incident').value,
+      severity: document.getElementById('hf-severity').value
+    });
+  }
+
+  document.getElementById('guide-form').addEventListener('submit', function (e) {
+    if (!state.bodyPart || !state.incident || !state.severity) {
+      e.preventDefault();
+      alert("Please ensure all steps are fully checked before compilation.");
+      return;
+    }
+    const btn = document.getElementById('submit-btn');
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'flex';
+    btn.disabled = true;
+  });
+
+  updateProgress(1);
+})();
+</script>
+{% endblock %}

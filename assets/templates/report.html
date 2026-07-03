@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Healthcare Report — MedAssist AI{% endblock %}
+
+{% block content %}
+{% with g=guidance %}
+
+<!-- ══════════════════════  HERO  ══════════════════════ -->
+<section style="background:var(--gradient-hero);padding:90px 0 32px;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:320px;height:320px;background:radial-gradient(circle,rgba(26,86,219,0.25) 0%,transparent 70%);top:-60px;right:-60px;border-radius:50%;animation:orb-float 9s ease-in-out infinite;"></div>
+  <div class="container position-relative">
+
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{% url 'home' %}" style="color:rgba(255,255,255,0.5);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:5px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+        <i class="bi bi-arrow-left"></i> Home
+      </a>
+      <span style="color:rgba(255,255,255,0.2);">/</span>
+      <span style="color:rgba(255,255,255,0.65);font-size:0.8rem;font-weight:600;">Healthcare Report</span>
+    </div>
+
+    <!-- Chips -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:100px;padding:4px 13px;font-size:0.73rem;color:rgba(255,255,255,0.75);font-weight:600;">
+        <i class="bi bi-file-earmark-medical me-1"></i>Report #MED-{{ g.condition|slugify|upper|slice:":8" }}
+      </span>
+      <span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:100px;padding:4px 13px;font-size:0.73rem;color:rgba(255,255,255,0.75);font-weight:600;">
+        <i class="bi bi-clock me-1"></i>{% now "N j, Y — g:i A" %}
+      </span>
+      <span style="background:rgba(6,214,160,0.15);border:1px solid rgba(6,214,160,0.3);border-radius:100px;padding:4px 13px;font-size:0.73rem;color:rgba(6,214,160,0.9);font-weight:700;">
+        <i class="bi bi-check-circle-fill me-1"></i>Report Complete
+      </span>
+    </div>
+
+    <h1 style="font-size:clamp(1.5rem,3vw,2rem);font-weight:800;color:#fff;letter-spacing:-0.5px;margin-bottom:8px;">Medical Assessment Report</h1>
+    
+    <div class="d-flex flex-wrap gap-3" style="font-size:0.82rem;color:rgba(255,255,255,0.55);">
+        {% if patient_name %}<span><i class="bi bi-person-fill me-1"></i>{{ patient_name }}</span>{% endif %}
+        {% if patient_age %}<span><i class="bi bi-calendar3 me-1"></i>Age {{ patient_age }}</span>{% endif %}
+        
+        <span><i class="bi bi-geo-alt me-1"></i>{{ g.body_part|default:body_part|capfirst }}</span>
+        <span><i class="bi bi-activity me-1"></i>{{ g.incident|default:incident|capfirst }}</span>
+        <span><i class="bi bi-thermometer-half me-1"></i>{{ g.severity|default:severity|capfirst }}</span>
+    </div>
+</section>
+
+<!-- ══════════════════════  BODY  ══════════════════════ -->
+<section style="background:var(--bg);padding:24px 0 60px;">
+  <div class="container">
+
+    <!-- Emergency Banner -->
+    {% if g.emergency %}
+    <div class="rpt-emergency-banner mb-3">
+      <div style="width:46px;height:46px;background:rgba(239,68,68,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;animation:pulse-icon 2s ease-in-out infinite;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div>
+        <div style="font-size:0.95rem;font-weight:800;color:#fff;margin-bottom:3px;">Emergency Medical Care Required</div>
+        <div style="font-size:0.82rem;color:rgba(255,255,255,0.72);">Based on severity, seek immediate professional medical attention alongside these first aid steps.</div>
+      </div>
+      <a href="tel:911" style="margin-left:auto;background:rgba(255,255,255,0.18);color:#fff;font-weight:700;font-size:0.85rem;padding:10px 20px;border-radius:10px;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,0.28);">
+        <i class="bi bi-telephone-fill"></i> 911
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- ── Summary Stats ── -->
+    <div class="rpt-summary-grid mb-3">
+      <div class="rpt-summary-cell">
+        <div class="rpt-sc-icon" style="background:rgba(26,86,219,0.1);color:var(--primary);"><i class="bi bi-geo-alt-fill"></i></div>
+        <div class="rpt-sc-label">Affected Area</div>
+        <div class="rpt-sc-value">{{ g.body_part|default:body_part|capfirst }}</div>
+      </div>
+      <div class="rpt-summary-cell">
+        <div class="rpt-sc-icon" style="background:rgba(239,68,68,0.1);color:var(--danger);"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+        <div class="rpt-sc-label">Injury Type</div>
+        <div class="rpt-sc-value">{{ g.incident|default:incident|capfirst }}</div>
+      </div>
+      <div class="rpt-summary-cell">
+        <div class="rpt-sc-icon sci-sev-{{ g.severity|lower|default:severity|lower }}"><i class="bi bi-thermometer-half"></i></div>
+        <div class="rpt-sc-label">Severity</div>
+        <div class="rpt-sc-value">{{ g.severity|default:severity|capfirst }}</div>
+      </div>
+      <div class="rpt-summary-cell">
+        <div class="rpt-sc-icon sci-risk-{{ g.risk|lower }}"><i class="bi bi-shield-exclamation"></i></div>
+        <div class="rpt-sc-label">Risk Level</div>
+        <div class="rpt-sc-value rpt-risk-{{ g.risk|lower }}">{{ g.risk }}</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ 2-COLUMN LAYOUT ══════════════════ -->
+    <div class="row g-3">
+
+      <!-- ═══ MAIN COLUMN (col-lg-8) ═══ -->
+      <div class="col-lg-8 d-flex flex-column gap-3">
+
+        <!-- 1. CONDITION CARD -->
+        <div class="rpc">
+          <div class="rpc-hd" style="background:linear-gradient(135deg,#1a56db,#1e3a8a);">
+            <i class="bi bi-clipboard2-pulse-fill"></i>
+            <span>Identified Condition</span>
+          </div>
+          <div class="rpc-bd">
+            <div style="font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:8px;">{{ g.condition }}</div>
+            <p style="font-size:0.86rem;color:var(--muted);line-height:1.65;margin:0;">{{ g.summary }}</p>
+            {% if details %}
+            <div style="margin-top:12px;background:var(--bg);padding:10px 14px;border-radius:9px;border:1px solid var(--border);font-size:0.83rem;color:var(--slate);">
+              <strong style="color:var(--dark);">Patient Notes:</strong> {{ details }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 2. PRECAUTIONS (side by side) ← TOP -->
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="rpc h-100">
+              <div class="rpc-hd" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">
+                <i class="bi bi-slash-circle-fill"></i>
+                <span>Things to Avoid</span>
+                <span class="rpc-badge">{{ g.avoid|length }}</span>
+              </div>
+              <div class="rpc-bd">
+                {% for item in g.avoid %}
+                <div class="rpc-avoid-row">
+                  <i class="bi bi-x-circle-fill" style="color:#ef4444;flex-shrink:0;font-size:13px;margin-top:2px;"></i>
+                  <span>{{ item }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="rpc h-100">
+              <div class="rpc-hd" style="background:linear-gradient(135deg,#f59e0b,#b45309);">
+                <i class="bi bi-alarm-fill"></i>
+                <span>Seek Emergency Help If</span>
+                <span class="rpc-badge">{{ g.emergency_signs|length }}</span>
+              </div>
+              <div class="rpc-bd">
+                {% for sign in g.emergency_signs %}
+                <div class="rpc-avoid-row">
+                  <i class="bi bi-exclamation-diamond-fill" style="color:#f59e0b;flex-shrink:0;font-size:13px;margin-top:2px;"></i>
+                  <span>{{ sign }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. FIRST AID STEPS -->
+        <div class="rpc">
+          <div class="rpc-hd" style="background:linear-gradient(135deg,#059669,#065f46);">
+            <i class="bi bi-list-check"></i>
+            <span>First Aid Protocol</span>
+            <span class="rpc-badge">{{ g.first_aid|length }} Steps</span>
+          </div>
+          <div class="rpc-bd">
+            <div class="rpc-steps-grid">
+              {% for step in g.first_aid %}
+              <div class="rpc-step">
+                <div class="rpc-step-num">{{ forloop.counter }}</div>
+                <div class="rpc-step-txt">{{ step }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. RECOVERY + PREVENTION (side by side) -->
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="rpc h-100">
+              <div class="rpc-hd" style="background:linear-gradient(135deg,#10b981,#059669);">
+                <i class="bi bi-heart-pulse-fill"></i>
+                <span>Recovery Guidance</span>
+              </div>
+              <div class="rpc-bd">
+                {% for item in g.recovery %}
+                <div class="rpc-check-row">
+                  <i class="bi bi-check-circle-fill" style="color:#10b981;flex-shrink:0;font-size:13px;margin-top:2px;"></i>
+                  <span>{{ item }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="rpc h-100">
+              <div class="rpc-hd" style="background:linear-gradient(135deg,#1a56db,#0f172a);">
+                <i class="bi bi-shield-fill-check"></i>
+                <span>Preventive Measures</span>
+              </div>
+              <div class="rpc-bd">
+                {% for item in g.prevention %}
+                <div class="rpc-check-row">
+                  <i class="bi bi-shield-check" style="color:#93c5fd;flex-shrink:0;font-size:13px;margin-top:2px;"></i>
+                  <span>{{ item }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col-lg-8 -->
+
+      <!-- ═══ SIDEBAR (col-lg-4) ═══ -->
+      <div class="col-lg-4 d-flex flex-column gap-3">
+
+        <!-- Status -->
+        <div class="rpc risk-card-{{ g.risk|lower }}">
+          <div style="text-align:center;padding:18px 12px 14px;">
+            <div style="font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Emergency Status</div>
+            <div style="font-size:2.2rem;margin-bottom:6px;">{% if g.emergency %}🚨{% else %}✅{% endif %}</div>
+            <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:5px;">{% if g.emergency %}Seek Medical Care{% else %}Manage at Home{% endif %}</div>
+            <div style="font-size:0.76rem;color:rgba(255,255,255,0.62);line-height:1.5;">{% if g.emergency %}Professional medical evaluation strongly recommended.{% else %}Manageable with home first aid and monitoring.{% endif %}</div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-strip">
+          <div class="stat-cell">
+            <div class="stat-cell-val gradient-text">{{ g.first_aid|length }}</div>
+            <div class="stat-cell-lbl">Aid Steps</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-val sev-color-{{ g.severity|lower }}">{{ g.severity|upper|slice:":3" }}</div>
+            <div class="stat-cell-lbl">Severity</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell-val rpt-risk-{{ g.risk|lower }}">{{ g.risk|upper|slice:":3" }}</div>
+            <div class="stat-cell-lbl">Risk</div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="rpc">
+          <div class="rpc-hd" style="background:linear-gradient(135deg,#334155,#0f172a);">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span>Quick Actions</span>
+          </div>
+          <div class="rpc-bd d-flex flex-column gap-2">
+            <button class="btn-action btn-action-primary w-100 justify-content-center" id="btn-print">
+              <i class="bi bi-printer-fill"></i> Print This Report
+            </button>
+            <a href="{% url 'guide' %}" class="btn-action btn-action-outline w-100 justify-content-center">
+              <i class="bi bi-arrow-counterclockwise"></i> New Assessment
+            </a>
+            <a href="{% url 'home' %}" class="btn-action btn-action-outline w-100 justify-content-center">
+              <i class="bi bi-house-fill"></i> Back to Home
+            </a>
+            <a href="tel:911" class="btn-action btn-action-danger w-100 justify-content-center">
+              <i class="bi bi-telephone-fill"></i> Emergency: 911
+            </a>
+          </div>
+        </div>
+
+        <!-- Emergency Signs quick list (sidebar shortcut) -->
+        <div class="rpc">
+          <div class="rpc-hd" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Key Warning Signs</span>
+          </div>
+          <div class="rpc-bd">
+            {% for sign in g.emergency_signs|slice:":4" %}
+            <div class="rpc-avoid-row" style="border-color:rgba(124,58,237,0.12);">
+              <i class="bi bi-dot" style="color:#c4b5fd;font-size:20px;flex-shrink:0;margin-top:-4px;"></i>
+              <span style="font-size:0.78rem;">{{ sign }}</span>
+            </div>
+            {% endfor %}
+            <div style="font-size:0.7rem;color:var(--muted);margin-top:8px;"><i class="bi bi-telephone-fill me-1 text-danger"></i>If any occur — call 911 immediately.</div>
+          </div>
+        </div>
+
+      </div><!-- /col-lg-4 -->
+
+    </div><!-- /row -->
+
+    <!-- ══════════════════ MEDICATIONS — FULL WIDTH ══════════════════ -->
+    {% if g.medications %}
+    <div class="rpc mt-3">
+      <div class="rpc-hd" style="background:linear-gradient(135deg,#059669,#7c3aed);">
+        <i class="bi bi-capsule-pill"></i>
+        <span>Medication Recommendations</span>
+        <span class="rpc-badge">{{ g.medications|length }} Items</span>
+        <span style="margin-left:auto;font-size:0.7rem;color:rgba(255,255,255,0.6);font-style:italic;">Consult a doctor before taking any medication</span>
+      </div>
+      <div class="rpc-bd">
+        <div class="row g-3">
+          {% for med in g.medications %}
+          <div class="col-sm-6 col-lg-4">
+            <div class="mgc {% if med.ok %}mgc-ok{% else %}mgc-avoid{% endif %}">
+              <div class="mgc-top">
+                <div class="mgc-icon">
+                  {% if med.ok %}<i class="bi bi-capsule-pill"></i>{% else %}<i class="bi bi-slash-circle-fill"></i>{% endif %}
+                </div>
+                <div class="mgc-status">
+                  {% if med.ok %}<span class="mgc-tag-ok">✓ Use</span>{% else %}<span class="mgc-tag-avoid">✕ Avoid</span>{% endif %}
+                </div>
+              </div>
+              <div class="mgc-name">{{ med.name }}</div>
+              {% if med.ok and med.dose != 'EMERGENCY' and med.dose != 'AVOID' %}
+              <div class="mgc-badges">
+                <span class="mgc-badge-dose"><i class="bi bi-droplet me-1"></i>{{ med.dose }}</span>
+                <span class="mgc-badge-freq"><i class="bi bi-clock me-1"></i>{{ med.freq }}</span>
+              </div>
+              {% endif %}
+              <div class="mgc-use">{{ med.use }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ══════════════════ HOSPITAL & DOCTOR ══════════════════ -->
+    <div class="hospital-section mt-3">
+
+      <div class="rpt-section-header">
+        <div class="rc-icon rci-blue"><i class="bi bi-hospital-fill"></i></div>
+        <h2 class="rpt-section-title">Connect to Professional Care</h2>
+      </div>
+
+      <div class="consult-cta">
+        <div class="consult-cta-icon"><i class="bi bi-person-badge-fill"></i></div>
+        <div class="consult-cta-content">
+          <h3>Consult a Doctor Online — Right Now</h3>
+          <p>Speak with a certified medical professional from the comfort of your home. Get expert diagnosis, prescriptions, and follow-up care through Practo's verified doctor network.</p>
+          <div class="consult-cta-features">
+            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Verified Doctors</span>
+            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Online Consultation</span>
+            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Prescriptions Available</span>
+            <span><i class="bi bi-check-circle-fill text-success me-1"></i>24/7 Availability</span>
+          </div>
+        </div>
+        <div class="consult-cta-action">
+          <a href="https://www.practo.com" target="_blank" rel="noopener noreferrer" class="btn-consult">
+            <i class="bi bi-box-arrow-up-right me-2"></i>Consult Doctor on Practo
+          </a>
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:7px;text-align:center;">Opens in a new tab</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:16px;margin-top:36px;">
+        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Nearby Hospitals
+      </h3>
+
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <div class="hosp-card">
+            <div class="hosp-card-top">
+              <div class="hosp-logo" style="background:linear-gradient(135deg,#1a56db,#1e3a8a);">AH</div>
+              <div><div class="hosp-name">Apollo Hospitals</div><div class="hosp-type">Multi-Specialty Hospital</div></div>
+              <span class="hosp-badge hosp-badge-premium">Premium</span>
+            </div>
+            <div class="hosp-details">
+              <div class="hosp-detail-item"><i class="bi bi-geo-alt-fill"></i>Road No 72, Jubilee Hills, Hyderabad — 500033</div>
+              <div class="hosp-detail-item"><i class="bi bi-telephone-fill"></i>+91 40 2360 7777</div>
+              <div class="hosp-detail-item"><i class="bi bi-clock-fill"></i>Emergency: Open 24/7</div>
+            </div>
+            <div class="hosp-card-footer">
+              <a href="https://www.apollohospitals.com" target="_blank" rel="noopener" class="hosp-btn-primary"><i class="bi bi-box-arrow-up-right me-1"></i> Visit</a>
+              <a href="https://maps.google.com/?q=Apollo+Hospitals+Jubilee+Hills+Hyderabad" target="_blank" rel="noopener" class="hosp-btn-secondary"><i class="bi bi-map-fill me-1"></i> Directions</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="hosp-card">
+            <div class="hosp-card-top">
+              <div class="hosp-logo" style="background:linear-gradient(135deg,#059669,#064e3b);">YH</div>
+              <div><div class="hosp-name">Yashoda Hospitals</div><div class="hosp-type">Super-Specialty Hospital</div></div>
+              <span class="hosp-badge hosp-badge-top">Top Rated</span>
+            </div>
+            <div class="hosp-details">
+              <div class="hosp-detail-item"><i class="bi bi-geo-alt-fill"></i>S.P. Road, Secunderabad, Hyderabad — 500003</div>
+              <div class="hosp-detail-item"><i class="bi bi-telephone-fill"></i>+91 40 4567 4567</div>
+              <div class="hosp-detail-item"><i class="bi bi-clock-fill"></i>Emergency: Open 24/7</div>
+            </div>
+            <div class="hosp-card-footer">
+              <a href="https://www.yashodahospitals.com" target="_blank" rel="noopener" class="hosp-btn-primary"><i class="bi bi-box-arrow-up-right me-1"></i> Visit</a>
+              <a href="https://maps.google.com/?q=Yashoda+Hospitals+Secunderabad" target="_blank" rel="noopener" class="hosp-btn-secondary"><i class="bi bi-map-fill me-1"></i> Directions</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <div class="hosp-card">
+            <div class="hosp-card-top">
+              <div class="hosp-logo" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">KH</div>
+              <div><div class="hosp-name">KIMS Hospitals</div><div class="hosp-type">Multi-Specialty Hospital</div></div>
+              <span class="hosp-badge hosp-badge-top">Top Rated</span>
+            </div>
+            <div class="hosp-details">
+              <div class="hosp-detail-item"><i class="bi bi-geo-alt-fill"></i>1-8-31/1, Minister Road, Secunderabad — 500003</div>
+              <div class="hosp-detail-item"><i class="bi bi-telephone-fill"></i>+91 40 4488 5000</div>
+              <div class="hosp-detail-item"><i class="bi bi-clock-fill"></i>Emergency: Open 24/7</div>
+            </div>
+            <div class="hosp-card-footer">
+              <a href="https://www.kimshospitals.com" target="_blank" rel="noopener" class="hosp-btn-primary"><i class="bi bi-box-arrow-up-right me-1"></i> Visit</a>
+              <a href="https://maps.google.com/?q=KIMS+Hospital+Secunderabad" target="_blank" rel="noopener" class="hosp-btn-secondary"><i class="bi bi-map-fill me-1"></i> Directions</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /hospital-section -->
+
+  </div><!-- /container -->
+</section>
+
+{% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('btn-print')?.addEventListener('click', () => window.print());
+</script>
+{% endblock %}
