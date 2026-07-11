@@ -128,6 +128,13 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS=[os.path.join(BASE_DIR, 'assets/static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# whitenoise.runserver_nostatic (in INSTALLED_APPS) disables Django's built-in
+# static-file serving in `runserver`, so WhiteNoise must serve it instead. Without
+# this, WhiteNoise only serves files copied into STATIC_ROOT by `collectstatic`,
+# which is easy to forget locally and causes CSS/JS to 404. WHITENOISE_USE_FINDERS
+# lets it serve straight from STATICFILES_DIRS too, so local static files always work.
+WHITENOISE_USE_FINDERS = True
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
