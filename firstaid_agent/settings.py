@@ -25,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-b6nt5rl$!vzo4&cqdrp1j&pgs9@m1%u5+gt4w)!i#3^z#xl=(#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'https://ai-firstaid-agent.onrender.com']
 
 
 INSTALLED_APPS = [
