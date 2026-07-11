@@ -65,7 +65,7 @@ def get_ai_medical_report(body_part, incident, severity, extra_details=""):
 
     try:
         # Updated to official OpenAI endpoint route
-        url = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)"        
+        url = "https://api.openai.com/v1/chat/completions"        
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {api_key}' # Standard OpenAI format
@@ -140,6 +140,10 @@ def guide(request):
         request.session['patient_age']    = age if age else "N/A"
         request.session['patient_detail'] = details if details else "None specified"
 
+        request.session['body_part'] = body_part
+        request.session['incident'] = incident
+        request.session['severity'] = severity
+        
         return redirect('report')
 
     return render(request, 'guide.html')

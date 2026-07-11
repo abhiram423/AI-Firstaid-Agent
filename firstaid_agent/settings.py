@@ -27,8 +27,11 @@ SECRET_KEY = 'django-insecure-b6nt5rl$!vzo4&cqdrp1j&pgs9@m1%u5+gt4w)!i#3^z#xl=(#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'https://ai-firstaid-agent.onrender.com']
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "ai-firstaid-agent.onrender.com",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -165,3 +168,9 @@ MESSAGE_TAGS = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://ai-firstaid-agent.onrender.com",
+    
+]
