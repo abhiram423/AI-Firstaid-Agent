@@ -346,53 +346,31 @@
 <script>
 (function () {
   // ── Data: comprehensive anatomical regions ────────────────────────
+  // NOTE: values must exactly match the body parts / incidents supported by
+  // mainapp/agents/guidance_data.py (GUIDANCE_DB + BODY_PART_DISPLAY /
+  // INCIDENT_DISPLAY). Anything outside this vocabulary falls through to a
+  // generic fallback on the backend, so every option here maps to real,
+  // combination-specific guidance instead of a repeated placeholder.
   const BODY_PARTS = [
-    { value:'scalp',     label:'Scalp',            icon:'🧠', keywords:['head','skull','crown','hair'] },
-    { value:'forehead', label:'Forehead',         icon:'🤕', keywords:['brow'] },
-    { value:'eye',       label:'Eye',              icon:'👁️', keywords:['eyelid','eyeball'] },
-    { value:'ear',       label:'Ear',              icon:'👂', keywords:['eardrum'] },
-    { value:'nose',      label:'Nose',             icon:'👃', keywords:['nostril','nosebleed'] },
-    { value:'mouth',     label:'Mouth / Teeth',    icon:'👄', keywords:['tooth','teeth','lip','gum'] },
-    { value:'jaw',       label:'Jaw',              icon:'🦷', keywords:['chin'] },
-    { value:'neck',      label:'Neck',             icon:'🧣', keywords:['throat'] },
-    { value:'shoulder',  label:'Shoulder',         icon:'🦴', keywords:['collarbone','clavicle'] },
-    { value:'chest',     label:'Chest',            icon:'❤️', keywords:['ribs','sternum','rib cage'] },
-    { value:'back',      label:'Back',             icon:'🔙', keywords:['spine','lower back'] },
-    { value:'abdomen',   label:'Abdomen',          icon:'🫃', keywords:['stomach','belly','gut'] },
-    { value:'hip',       label:'Hip',              icon:'🦴', keywords:['pelvis'] },
-    { value:'arm',       label:'Upper Arm',        icon:'💪', keywords:['bicep','tricep'] },
-    { value:'elbow',     label:'Elbow',            icon:'💪', keywords:[] },
-    { value:'forearm',   label:'Forearm',          icon:'💪', keywords:[] },
-    { value:'wrist',     label:'Wrist',            icon:'🖐️', keywords:[] },
-    { value:'hand',      label:'Hand',             icon:'🖐️', keywords:['palm'] },
-    { value:'finger',    label:'Finger / Thumb',   icon:'☝️', keywords:['thumb','fingernail'] },
-    { value:'groin',     label:'Groin',            icon:'🦵', keywords:[] },
-    { value:'thigh',     label:'Thigh',            icon:'🦵', keywords:[] },
-    { value:'knee',      label:'Knee',             icon:'🦵', keywords:['kneecap'] },
-    { value:'shin',      label:'Shin',             icon:'🦵', keywords:[] },
-    { value:'calf',      label:'Calf',             icon:'🦵', keywords:[] },
-    { value:'ankle',     label:'Ankle',            icon:'🦶', keywords:[] },
-    { value:'foot',      label:'Foot',             icon:'🦶', keywords:[] },
-    { value:'toe',       label:'Toe',              icon:'🦶', keywords:['toenail'] },
-    { value:'skin',      label:'General Skin',     icon:'🩹', keywords:['rash','all over'] },
+    { value:'head',  label:'Head',  icon:'🧠', keywords:['scalp','skull','forehead','brow'] },
+    { value:'eye',   label:'Eye',   icon:'👁️', keywords:['eyelid','eyeball'] },
+    { value:'chest', label:'Chest', icon:'❤️', keywords:['ribs','sternum','rib cage'] },
+    { value:'back',  label:'Back',  icon:'🔙', keywords:['spine','lower back'] },
+    { value:'arm',   label:'Arm',   icon:'💪', keywords:['bicep','tricep','elbow','forearm','shoulder'] },
+    { value:'hand',  label:'Hand',  icon:'✋', keywords:['palm','wrist','finger','thumb'] },
+    { value:'leg',   label:'Leg',   icon:'🦵', keywords:['thigh','knee','shin','calf'] },
+    { value:'foot',  label:'Foot',  icon:'🦶', keywords:['ankle','toe'] },
   ];
-  const QUICK_PICKS = ['scalp','hand','wrist','ankle','knee','shoulder','back','chest','foot'];
+  const QUICK_PICKS = ['head','hand','arm','leg','chest','back','eye','foot'];
 
-  // ── Data: expanded incident matrix ─────────────────────────────────
+  // ── Data: incident matrix (matches guidance_data.py's INCIDENT_DISPLAY) ──
   const INCIDENTS = [
-    { value:'bleeding',      label:'Bleeding',            icon:'bi-droplet-fill',              color:'red',      desc:'Open wound with blood loss', keywords:['bleed','blood','bleeding','hemorrhag'] },
-    { value:'laceration',    label:'Laceration / Cut',    icon:'bi-scissors',                  color:'blue',     desc:'Sliced or torn skin from a sharp object', keywords:['cut','slice','sliced','knife','laceration','gash'] },
-    { value:'puncture',      label:'Puncture Wound',      icon:'bi-exclamation-diamond-fill',  color:'indigo',  desc:'Deep wound from a pointed object', keywords:['puncture','stab','nail','splinter','impaled'] },
-    { value:'burn',          label:'Thermal Burn',        icon:'bi-fire',                      color:'orange',  desc:'Heat, flame, or scald injury', keywords:['burn','scald','fire','hot ','boiling'] },
-    { value:'chemical_burn', label:'Chemical Burn',       icon:'bi-droplet-half',              color:'amber',   desc:'Skin contact with a caustic substance', keywords:['chemical','acid','bleach','corrosive'] },
-    { value:'fracture',      label:'Fracture',            icon:'bi-bandaid-fill',              color:'slate',   desc:'Suspected broken or cracked bone', keywords:['fracture','broken','break','snap','crack'] },
-    { value:'sprain_strain', label:'Sprain / Strain',     icon:'bi-activity',                  color:'purple',  desc:'Overstretched ligament or muscle', keywords:['sprain','strain','twisted','pulled','rolled'] },
-    { value:'dislocation',   label:'Dislocation',         icon:'bi-arrows-angle-contract',     color:'fuchsia', desc:'Joint forced out of its normal position', keywords:['dislocat','popped out','out of socket'] },
-    { value:'bruise',        label:'Bruise / Contusion',  icon:'bi-circle-half',               color:'violet',  desc:'Discolouration from blunt impact', keywords:['bruise','contusion','black and blue'] },
-    { value:'swelling',      label:'Swelling',            icon:'bi-circle-fill',               color:'cyan',    desc:'Inflammation or puffiness', keywords:['swelling','swollen','inflam'] },
-    { value:'sting_bite',    label:'Sting / Bite',        icon:'bi-bug-fill',                  color:'lime',    desc:'Insect, animal, or marine sting/bite', keywords:['sting','bite','bit by','bee','wasp','spider','snake'] },
-    { value:'allergic',      label:'Allergic Reaction',   icon:'bi-flower2',                   color:'pink',    desc:'Hives, itching, or swelling from allergen exposure', keywords:['allerg','hives','itch','reaction'] },
-    { value:'internal_pain', label:'Internal Pain',       icon:'bi-lightning-charge-fill',     color:'rose',    desc:'Deep, non-visible pain without an open wound', keywords:['internal','ache','sharp pain','cramp'] },
+    { value:'bleeding', label:'Bleeding', icon:'bi-droplet-fill',           color:'red',    desc:'Open wound with blood loss', keywords:['bleed','blood','bleeding','hemorrhag'] },
+    { value:'burn',     label:'Burn',     icon:'bi-fire',                  color:'orange', desc:'Heat, flame, chemical, or scald injury', keywords:['burn','scald','fire','hot ','boiling','chemical','acid'] },
+    { value:'pain',     label:'Pain',     icon:'bi-lightning-charge-fill', color:'amber',  desc:'Aching, sharp, or throbbing discomfort', keywords:['pain','ache','hurt','sore','headache','internal'] },
+    { value:'cut',      label:'Cut',      icon:'bi-scissors',              color:'blue',   desc:'Sliced or torn skin from a sharp object', keywords:['cut','slice','sliced','knife','laceration','gash','puncture','stab'] },
+    { value:'swelling', label:'Swelling', icon:'bi-circle-fill',           color:'cyan',   desc:'Inflammation, puffiness, or suspected fracture', keywords:['swelling','swollen','inflam','fracture','broken','sprain','dislocat'] },
+    { value:'bruise',   label:'Bruise',   icon:'bi-circle-half',           color:'violet', desc:'Discolouration from blunt impact', keywords:['bruise','contusion','black and blue'] },
   ];
 
   const SEVERITIES = [

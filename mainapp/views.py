@@ -4,6 +4,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import APIKEY, Patient
+from .agents.guidance_data import get_guidance
 
 def home(request):
     return render(request, 'home.html')
@@ -14,18 +15,14 @@ def get_ai_medical_report(body_part, incident, severity, extra_details=""):
     Forces the model to output a highly comprehensive, step-by-step detailed 
     JSON structure matching report.html fields.
     """
-    # Fetching your OpenAI Key from your environment variables
     api_key = os.getenv('HEALTH_CARE_API_KEY')
-    
+
+    # No live API key configured — serve the local, hand-curated guidance
+    # database instead. get_guidance() matches the exact body_part +
+    # incident + severity combination selected by the user, so the output
+    # is specific to their selection rather than a generic placeholder.
     if not api_key:
-        # Fallback dictionary if configuration or key is missing
-        return {
-            "condition": f"Minor {incident.capitalize()} on the {body_part.capitalize()}",
-            "summary": "AI pipeline offline. Please configure your HEALTH_CARE_API_KEY environment variable.",
-            "risk": "Low", "emergency": False, "first_aid": ["Apply pressure", "Clean with water"],
-            "avoid": ["Do not scratch"], "emergency_signs": ["Fainting", "Uncontrolled bleeding"],
-            "recovery": ["Rest"], "prevention": ["Wear protective gear"], "medications": []
-        }
+        return get_guidance(body_part, incident, severity)
 
     # Constructing a precise system safety prompt
     prompt = f"""
@@ -92,14 +89,11 @@ def get_ai_medical_report(body_part, incident, severity, extra_details=""):
             
     except Exception as e:
         print(f"Pipeline error encountered: {str(e)}")
-        
-    # Return structural breakdown placeholder if API request fails halfway
-    return {
-        "condition": f"Evaluated {incident} triage context",
-        "summary": "The system encountered an error connecting to the live analysis engine.",
-        "risk": "Medium", "emergency": False, "first_aid": ["Keep the injured area safe and steady."],
-        "avoid": [], "emergency_signs": ["Worsening pain", "Sudden dizziness"], "recovery": [], "prevention": [], "medications": []
-    }
+
+    # If the live API call failed or errored out, fall back to the local
+    # guidance database rather than a generic placeholder — still gives the
+    # user a precise, combination-matched first aid report.
+    return get_guidance(body_part, incident, severity)
 
 def guide(request):
     """4-step guided workflow parsing backend input parameters to live OpenAI Engines."""
